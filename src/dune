@@ -1,0 +1,4 @@
+(executable
+ (public_name transw)
+ (name main)
+ (libraries sqlite3 base unix))
