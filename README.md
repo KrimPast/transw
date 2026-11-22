@@ -1,5 +1,6 @@
 ## transw — translate wrapper with response caching 
-[![asciicast](https://asciinema.org/a/BlgVraoFcNAtPu53.svg)](https://asciinema.org/a/BlgVraoFcNAtPu53)
+[![asciicast](https://asciinema.org/a/1273447.svg)](https://asciinema.org/a/1273447)
+
 ### transw uses
 - [Translate Shell](https://archlinux.org/packages/extra/any/translate-shell/)
 - OCaml (code)
