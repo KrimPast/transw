@@ -34,26 +34,10 @@ let open_db () =
 
 let close_db db = db_close db
 
-let get_lang str_text =
-  let russian =
-    "АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯабвгдеёжзийклмнопрстуфхцчшщъыьэюя"
-  in
-  let english = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz" in
-  let text = List.of_seq (String.to_seq str_text) in
-
-  let rec helper bal = function
-    | x :: xs ->
-        if String.contains russian x then helper (bal - 1) xs
-        else if String.contains english x then helper (bal + 2) xs (* magic. *)
-        else helper bal xs
-    | [] -> bal
-  in
-  if helper 0 text >= 0 then "en:ru" else "ru:en"
-
 let run_utility string =
   let flag1 = "-show-alternatives" in
   let flag2 = "-show-translation-phonetics" in
-  let lang = get_lang string in
+  let lang = Misc.get_lang string in
   let stdout =
     Unix.open_process_args_in "trans"
       [| "grep"; flag1; "n"; flag2; "n"; lang; string |]
@@ -108,21 +92,22 @@ let () =
   Sys.catch_break true;
   let rec loop () =
     try
-      let line = read_line () in
-      ignore (Sys.command "clear");
-      let output =
-        match try_load_cached_data db line with
-        | Some value ->
-            let time = decode_current_time (fst value) in
-            print_log (sprintf "Retrieved from cache (%s)" time) Rc.OK;
-            snd value
-        | None ->
-            let value = run_utility line in
-            cache_data db line value;
-            print_log "Cached successfully!" Rc.OK;
-            value
-      in
-      print_endline output;
+      let line = Misc.preprocess_request (read_line ()) in
+      if not (String.is_empty line) then (
+        ignore (Sys.command "clear");
+        let output =
+          match try_load_cached_data db line with
+          | Some value ->
+              let time = decode_current_time (fst value) in
+              print_log (sprintf "Retrieved from cache (%s)" time) Rc.OK;
+              snd value
+          | None ->
+              let value = run_utility line in
+              cache_data db line value;
+              print_log "Cached successfully!" Rc.OK;
+              value
+        in
+        print_endline output);
       loop ()
     with End_of_file | Sys.Break -> ()
   in

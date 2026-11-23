@@ -16,5 +16,4 @@
 (package
  (name transw)
  (synopsis "CLI-translate wrapper with response caching")
- (description "A longer description")
- (depends ocaml sqlite3 unix))
+ (depends ocaml sqlite3 ppx_inline_test))

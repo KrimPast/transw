@@ -1,4 +1,12 @@
 (executable
  (public_name transw)
  (name main)
- (libraries sqlite3 base unix))
+ (modules main)
+ (libraries sqlite3 base unix misc))
+
+(library
+ (name misc)
+ (modules misc)
+ (inline_tests)
+ (preprocess
+  (pps ppx_inline_test)))
