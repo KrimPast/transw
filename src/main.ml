@@ -8,10 +8,12 @@ let dbPath =
     (Filename.dirname @@ Sys.executable_name)
     Filename.dir_sep dbName
 
-let print_log message rc =
+exception TransBadReturnCode
+
+let print_log ?(check = true) message rc =
   printf "LOG: %s [%s]\n" message (Sqlite3.Rc.to_string rc);
   Stdlib.flush stdout;
-  Rc.check rc
+  if check then Rc.check rc
 
 let get_current_time () = Unix.time ()
 
@@ -43,8 +45,8 @@ let run_utility string =
       [| "grep"; flag1; "n"; flag2; "n"; lang; string |]
   in
   let output = In_channel.input_all stdout in
-  ignore (Unix.close_process_in stdout);
-  output
+  let status = Unix.close_process_in stdout in
+  match status with WEXITED 0 -> output | _ -> raise TransBadReturnCode
 
 let init_translates_table db =
   exec db
@@ -109,7 +111,12 @@ let () =
         in
         print_endline output);
       loop ()
-    with End_of_file | Sys.Break -> ()
+    with
+    | End_of_file | Sys.Break -> ()
+    | TransBadReturnCode ->
+        print_log ~check:false "Translate app returned unexpected code."
+          Rc.ERROR;
+        print_log ~check:false "Check your internet connection." Rc.ERROR
   in
   loop ();
   print_log "Close database" (if close_db db then Rc.OK else Rc.ERROR)
